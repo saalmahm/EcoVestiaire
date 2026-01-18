@@ -11,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -41,11 +42,15 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().permitAll()
-                )
+              .authorizeHttpRequests(auth -> auth
+                // Endpoints publics
+                .requestMatchers("/auth/register", "/auth/login").permitAll()
+                // Profil public accessible sans auth
+                .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
+                // Profil courant et reste de l'API protégés
+                .requestMatchers("/api/**").authenticated()
+                .anyRequest().permitAll()
+        )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
