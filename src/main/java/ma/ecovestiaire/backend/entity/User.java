@@ -52,6 +52,9 @@ public class User {
 
     private String profilePhotoUrl;
 
+    @Column(length = 150)
+    private String location;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;
