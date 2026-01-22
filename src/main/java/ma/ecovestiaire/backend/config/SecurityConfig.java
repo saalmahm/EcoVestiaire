@@ -43,12 +43,11 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                    // Public
                     .requestMatchers("/auth/register", "/auth/login").permitAll()
                     .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-                    // Admin catégories
                     .requestMatchers("/admin/categories/**").hasRole("ADMIN")
-                    // Autres API protégées
+                    // user authentifié (USER ou ADMIN)
+                    .requestMatchers("/items/**").authenticated()
                     .requestMatchers("/api/**").authenticated()
                     .anyRequest().permitAll()
             )
