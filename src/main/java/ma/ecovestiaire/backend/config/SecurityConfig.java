@@ -35,24 +35,25 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-              .authorizeHttpRequests(auth -> auth
-                // Endpoints publics
-                .requestMatchers("/auth/register", "/auth/login").permitAll()
-                // Profil public accessible sans auth
-                .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
-                // Profil courant et reste de l'API protégés
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().permitAll()
-        )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                    // Public
+                    .requestMatchers("/auth/register", "/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+                    // Admin catégories
+                    .requestMatchers("/admin/categories/**").hasRole("ADMIN")
+                    // Autres API protégées
+                    .requestMatchers("/api/**").authenticated()
+                    .anyRequest().permitAll()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+}
 }
