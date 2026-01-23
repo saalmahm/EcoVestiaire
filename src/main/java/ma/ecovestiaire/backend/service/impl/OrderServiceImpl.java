@@ -11,6 +11,10 @@ import ma.ecovestiaire.backend.repository.ItemRepository;
 import ma.ecovestiaire.backend.repository.OrderRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
 import ma.ecovestiaire.backend.service.OrderService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -95,5 +99,25 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    @Override
+    public Page<OrderResponse> getMyPurchases(int page, int size, String sortDir) {
+        User buyer = getCurrentUser();
+        Sort.Direction direction = Sort.Direction.fromString(sortDir);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+
+        Page<Order> ordersPage = orderRepository.findByBuyer(buyer, pageable);
+        return ordersPage.map(this::toDto);
+    }
+
+    @Override
+    public Page<OrderResponse> getMySales(int page, int size, String sortDir) {
+        User seller = getCurrentUser();
+        Sort.Direction direction = Sort.Direction.fromString(sortDir);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+
+        Page<Order> ordersPage = orderRepository.findByItem_Seller(seller, pageable);
+        return ordersPage.map(this::toDto);
     }
 }
