@@ -2,8 +2,11 @@ package ma.ecovestiaire.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import ma.ecovestiaire.backend.dto.CommentResponse;
+import ma.ecovestiaire.backend.dto.CreateCommentRequest;
 import ma.ecovestiaire.backend.dto.ItemRequest;
 import ma.ecovestiaire.backend.dto.ItemResponse;
+import ma.ecovestiaire.backend.service.CommentService;
 import ma.ecovestiaire.backend.service.FavoriteService;
 import ma.ecovestiaire.backend.service.ItemService;
 import org.springframework.http.HttpStatus;
@@ -23,17 +26,17 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/items")
 public class ItemController {
-
     private final ItemService itemService;
     private final FavoriteService favoriteService;
+    private final CommentService commentService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
     private static final String UPLOAD_DIR = "uploads/items";
-
     public ItemController(ItemService itemService,
-                          FavoriteService favoriteService) {
+                          FavoriteService favoriteService,
+                          CommentService commentService) {
         this.itemService = itemService;
         this.favoriteService = favoriteService;
+        this.commentService = commentService;
     }
 
     private List<String> savePhotos(List<MultipartFile> photos) throws IOException {
@@ -135,5 +138,22 @@ public class ItemController {
     public ResponseEntity<Void> unlikeItem(@PathVariable("id") Long itemId) {
         favoriteService.unlikeItem(itemId);
         return ResponseEntity.noContent().build();
+    }
+
+        @PostMapping("/{id}/comments")
+    public ResponseEntity<CommentResponse> addComment(
+            @PathVariable("id") Long itemId,
+            @Valid @RequestBody CreateCommentRequest request
+    ) {
+        CommentResponse response = commentService.addCommentToItem(itemId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}/comments")
+    public ResponseEntity<List<CommentResponse>> getComments(
+            @PathVariable("id") Long itemId
+    ) {
+        List<CommentResponse> comments = commentService.getCommentsForItem(itemId);
+        return ResponseEntity.ok(comments);
     }
 }
