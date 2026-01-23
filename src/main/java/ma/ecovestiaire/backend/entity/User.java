@@ -45,7 +45,10 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private UserStatus status;
+    private UserStatus status = UserStatus.ACTIVE;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @Column(length = 500)
     private String bio;
