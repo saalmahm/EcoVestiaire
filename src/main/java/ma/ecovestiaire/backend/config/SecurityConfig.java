@@ -47,7 +47,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/categories").permitAll()
                         .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
                         .requestMatchers(HttpMethod.POST, "/payments/webhook").permitAll()
+
                         .requestMatchers("/admin/categories/**").hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/items/*/favorite").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/items/*/favorite").authenticated()
+                        .requestMatchers("/api/users/me/favorites").authenticated()
+
                         .requestMatchers("/items/**").authenticated()
                         .requestMatchers("/orders/**").authenticated()
                         .requestMatchers("/payments/**").authenticated()
