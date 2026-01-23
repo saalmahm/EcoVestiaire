@@ -43,14 +43,16 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/auth/register", "/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-                    .requestMatchers("/admin/categories/**").hasRole("ADMIN")
-                    // user authentifié (USER ou ADMIN)
-                    .requestMatchers("/items/**").authenticated()
-                    .requestMatchers("/api/**").authenticated()
-                    .anyRequest().permitAll()
-            )
+            .requestMatchers("/auth/register", "/auth/login").permitAll()
+            .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+            .requestMatchers("/admin/categories/**").hasRole("ADMIN")
+            // consultation publique des articles
+            .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
+            // création / maj / suppression d'articles : user connecté
+            .requestMatchers("/items/**").authenticated()
+            .requestMatchers("/api/**").authenticated()
+            .anyRequest().permitAll()
+    )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
