@@ -3,8 +3,10 @@ package ma.ecovestiaire.backend.service.impl;
 import ma.ecovestiaire.backend.dto.UserSummaryResponse;
 import ma.ecovestiaire.backend.entity.Subscription;
 import ma.ecovestiaire.backend.entity.User;
+import ma.ecovestiaire.backend.enums.NotificationType;
 import ma.ecovestiaire.backend.repository.SubscriptionRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
+import ma.ecovestiaire.backend.service.NotificationService;
 import ma.ecovestiaire.backend.service.SubscriptionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,11 +20,14 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public SubscriptionServiceImpl(SubscriptionRepository subscriptionRepository,
-                                   UserRepository userRepository) {
+                                   UserRepository userRepository,
+                                   NotificationService notificationService) {
         this.subscriptionRepository = subscriptionRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     private User getCurrentUser() {
@@ -72,6 +77,17 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                 .build();
 
         subscriptionRepository.save(subscription);
+
+        // Notification pour l'utilisateur suivi
+        String message = current.getFirstName() + " a commencé à vous suivre";
+        String link = "/api/users/" + current.getId();
+
+        notificationService.createNotification(
+                target,
+                NotificationType.NEW_FOLLOW,
+                message,
+                link
+        );
     }
 
     @Override
