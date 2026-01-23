@@ -49,7 +49,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .requestMatchers("/admin/categories/**").hasRole("ADMIN")
             .requestMatchers("/items/**").authenticated()
             .requestMatchers("/orders/**").authenticated()
-            .requestMatchers("/api/**").authenticated()
+            .requestMatchers("/payments/**").authenticated()
             .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
