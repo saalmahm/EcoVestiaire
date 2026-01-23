@@ -47,6 +47,10 @@ public class Order {
     @Column(length = 100)
     private String stripePaymentId;
 
+    // ID de la session de paiement Stripe Checkout
+    @Column(length = 255)
+    private String stripeCheckoutSessionId;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;
