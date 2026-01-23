@@ -63,6 +63,7 @@ public class SecurityConfig {
                     .requestMatchers("/payments/**").authenticated()
 
                     .requestMatchers("/notifications").authenticated()
+                    .requestMatchers("/admin/users/**").hasRole("ADMIN")
                     .anyRequest().permitAll()
             )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
