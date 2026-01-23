@@ -35,25 +35,26 @@ public class SecurityConfig {
         return configuration.getAuthenticationManager();
     }
 
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/register", "/auth/login").permitAll()
-            .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-            .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
-            .requestMatchers("/admin/categories/**").hasRole("ADMIN")
-            .requestMatchers("/items/**").authenticated()
-            .requestMatchers("/orders/**").authenticated()
-            .requestMatchers("/payments/**").authenticated()
-            .anyRequest().permitAll()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/payments/webhook").permitAll()
+                        .requestMatchers("/admin/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/items/**").authenticated()
+                        .requestMatchers("/orders/**").authenticated()
+                        .requestMatchers("/payments/**").authenticated()
+                        .anyRequest().permitAll()
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-    return http.build();
-}
+        return http.build();
+    }
 }
