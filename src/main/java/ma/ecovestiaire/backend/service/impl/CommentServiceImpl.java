@@ -5,10 +5,12 @@ import ma.ecovestiaire.backend.dto.CreateCommentRequest;
 import ma.ecovestiaire.backend.entity.Comment;
 import ma.ecovestiaire.backend.entity.Item;
 import ma.ecovestiaire.backend.entity.User;
+import ma.ecovestiaire.backend.enums.NotificationType;
 import ma.ecovestiaire.backend.repository.CommentRepository;
 import ma.ecovestiaire.backend.repository.ItemRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
 import ma.ecovestiaire.backend.service.CommentService;
+import ma.ecovestiaire.backend.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,13 +26,16 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public CommentServiceImpl(CommentRepository commentRepository,
                               ItemRepository itemRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              NotificationService notificationService) {
         this.commentRepository = commentRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     private User getCurrentUser() {
@@ -86,6 +91,18 @@ public class CommentServiceImpl implements CommentService {
                 .build();
 
         Comment saved = commentRepository.save(comment);
+
+        // Notification pour le vendeur de l'article
+        String message = "Nouveau commentaire sur votre article " + item.getTitle();
+        String link = "/items/" + item.getId();
+
+        notificationService.createNotification(
+                item.getSeller(),
+                NotificationType.NEW_COMMENT,
+                message,
+                link
+        );
+
         return toCommentResponse(saved);
     }
 

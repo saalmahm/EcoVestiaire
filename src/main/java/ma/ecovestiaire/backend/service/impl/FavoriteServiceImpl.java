@@ -4,10 +4,12 @@ import ma.ecovestiaire.backend.dto.FavoriteItemResponse;
 import ma.ecovestiaire.backend.entity.Favorite;
 import ma.ecovestiaire.backend.entity.Item;
 import ma.ecovestiaire.backend.entity.User;
+import ma.ecovestiaire.backend.enums.NotificationType;
 import ma.ecovestiaire.backend.repository.FavoriteRepository;
 import ma.ecovestiaire.backend.repository.ItemRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
 import ma.ecovestiaire.backend.service.FavoriteService;
+import ma.ecovestiaire.backend.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,13 +23,16 @@ public class FavoriteServiceImpl implements FavoriteService {
     private final FavoriteRepository favoriteRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public FavoriteServiceImpl(FavoriteRepository favoriteRepository,
                                ItemRepository itemRepository,
-                               UserRepository userRepository) {
+                               UserRepository userRepository,
+                               NotificationService notificationService) {
         this.favoriteRepository = favoriteRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     private User getCurrentUser() {
@@ -73,6 +78,17 @@ public class FavoriteServiceImpl implements FavoriteService {
                 .build();
 
         favoriteRepository.save(favorite);
+
+        // Notification pour le vendeur de l'article
+        String message = "Votre article " + item.getTitle() + " a été ajouté aux favoris";
+        String link = "/items/" + item.getId();
+
+        notificationService.createNotification(
+                item.getSeller(),
+                NotificationType.ITEM_LIKED,
+                message,
+                link
+        );
     }
 
     @Override
