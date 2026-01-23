@@ -8,6 +8,7 @@ import ma.ecovestiaire.backend.repository.NotificationRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
 import ma.ecovestiaire.backend.service.NotificationService;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,11 +20,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public NotificationServiceImpl(NotificationRepository notificationRepository,
-                                   UserRepository userRepository) {
+                                   UserRepository userRepository,
+                                   SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     private User getCurrentUser() {
@@ -71,6 +75,17 @@ public class NotificationServiceImpl implements NotificationService {
                 .isRead(false)
                 .build();
 
-        notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+
+        // Envoi temps réel sur WebSocket si le user est connecté
+        NotificationResponse payload = toResponse(saved);
+
+        String userDest = targetUser.getEmail(); 
+
+        messagingTemplate.convertAndSendToUser(
+                userDest,
+                "/queue/notifications",
+                payload
+        );
     }
 }
