@@ -1,9 +1,11 @@
 package ma.ecovestiaire.backend.controller;
 
 import jakarta.validation.Valid;
+import ma.ecovestiaire.backend.dto.FavoriteItemResponse;
 import ma.ecovestiaire.backend.dto.UpdateUserProfileRequest;
 import ma.ecovestiaire.backend.dto.UserProfileResponse;
 import ma.ecovestiaire.backend.dto.UserSummaryResponse;
+import ma.ecovestiaire.backend.service.FavoriteService;
 import ma.ecovestiaire.backend.service.SubscriptionService;
 import ma.ecovestiaire.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -17,11 +19,14 @@ public class UserController {
 
     private final UserService userService;
     private final SubscriptionService subscriptionService;
+    private final FavoriteService favoriteService;
 
     public UserController(UserService userService,
-                          SubscriptionService subscriptionService) {
+                          SubscriptionService subscriptionService,
+                          FavoriteService favoriteService) {
         this.userService = userService;
         this.subscriptionService = subscriptionService;
+        this.favoriteService = favoriteService;
     }
 
     @GetMapping("/me")
@@ -62,5 +67,10 @@ public class UserController {
     public ResponseEntity<List<UserSummaryResponse>> getFollowing(@PathVariable("id") Long userId) {
         List<UserSummaryResponse> following = subscriptionService.getFollowing(userId);
         return ResponseEntity.ok(following);
+    }
+
+    @GetMapping("/me/favorites")
+    public ResponseEntity<List<FavoriteItemResponse>> getMyFavorites() {
+        return ResponseEntity.ok(favoriteService.getMyFavoriteItems());
     }
 }
