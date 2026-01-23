@@ -16,7 +16,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import ma.ecovestiaire.backend.enums.ItemStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -153,5 +157,54 @@ public class ItemServiceImpl implements ItemService {
         }
 
         itemRepository.delete(item);
+    }
+
+        @Override
+    public ItemResponse getItemById(Long id) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Article introuvable"
+                ));
+
+        // Ne retourner que AVAILABLE ou SOLD
+        if (item.getStatus() != ItemStatus.AVAILABLE && item.getStatus() != ItemStatus.SOLD) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Article non disponible");
+        }
+
+        return toDto(item);
+    }
+
+    @Override
+    public List<ItemResponse> searchItems(
+            Long categoryId,
+            String size,
+            String conditionLabel,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            String text,
+            boolean includeSold,
+            int page,
+            int sizePage
+    ) {
+        List<ItemStatus> statuses = includeSold
+                ? Arrays.asList(ItemStatus.AVAILABLE, ItemStatus.SOLD)
+                : List.of(ItemStatus.AVAILABLE);
+
+        PageRequest pageable = PageRequest.of(page, sizePage);
+
+        Page<Item> itemPage = itemRepository.searchItems(
+                statuses,
+                categoryId,
+                size,
+                conditionLabel,
+                minPrice,
+                maxPrice,
+                text,
+                pageable
+        );
+
+        return itemPage
+                .map(this::toDto)
+                .getContent();
     }
 }
