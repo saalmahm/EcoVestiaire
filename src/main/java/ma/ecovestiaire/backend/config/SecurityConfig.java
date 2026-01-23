@@ -61,6 +61,8 @@ public class SecurityConfig {
                     .requestMatchers("/items/**").authenticated()
                     .requestMatchers("/orders/**").authenticated()
                     .requestMatchers("/payments/**").authenticated()
+
+                    .requestMatchers("/notifications").authenticated()
                     .anyRequest().permitAll()
             )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
