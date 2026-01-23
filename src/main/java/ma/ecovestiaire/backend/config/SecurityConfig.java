@@ -45,14 +45,13 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/register", "/auth/login").permitAll()
             .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-            .requestMatchers("/admin/categories/**").hasRole("ADMIN")
-            // consultation publique des articles
             .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
-            // création / maj / suppression d'articles : user connecté
+            .requestMatchers("/admin/categories/**").hasRole("ADMIN")
             .requestMatchers("/items/**").authenticated()
+            .requestMatchers("/orders/**").authenticated()
             .requestMatchers("/api/**").authenticated()
             .anyRequest().permitAll()
-    )
+            )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
