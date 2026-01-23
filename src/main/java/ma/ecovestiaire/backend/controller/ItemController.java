@@ -17,6 +17,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
+
 
 @RestController
 @RequestMapping("/items")
@@ -86,5 +88,38 @@ public class ItemController {
     public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
         itemService.deleteItem(id);
         return ResponseEntity.noContent().build();
+    }
+
+      // GET /items/{id} - détail article (public)
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemResponse> getItemById(@PathVariable Long id) {
+        ItemResponse response = itemService.getItemById(id);
+        return ResponseEntity.ok(response);
+    }
+    // GET /items - recherche avec filtres + pagination (public)
+    @GetMapping
+    public ResponseEntity<List<ItemResponse>> searchItems(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String size,
+            @RequestParam(required = false) String conditionLabel,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false, name = "q") String text,
+            @RequestParam(defaultValue = "false") boolean includeSold,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10", name = "pageSize") int sizePage
+    ) {
+        List<ItemResponse> items = itemService.searchItems(
+                categoryId,
+                size,
+                conditionLabel,
+                minPrice,
+                maxPrice,
+                text,
+                includeSold,
+                page,
+                sizePage
+        );
+        return ResponseEntity.ok(items);
     }
 }
