@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import ma.ecovestiaire.backend.dto.ItemRequest;
 import ma.ecovestiaire.backend.dto.ItemResponse;
+import ma.ecovestiaire.backend.service.FavoriteService;
 import ma.ecovestiaire.backend.service.ItemService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,18 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.math.BigDecimal;
 
-
 @RestController
 @RequestMapping("/items")
 public class ItemController {
 
     private final ItemService itemService;
+    private final FavoriteService favoriteService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String UPLOAD_DIR = "uploads/items";
 
-    public ItemController(ItemService itemService) {
+    public ItemController(ItemService itemService,
+                          FavoriteService favoriteService) {
         this.itemService = itemService;
+        this.favoriteService = favoriteService;
     }
 
     private List<String> savePhotos(List<MultipartFile> photos) throws IOException {
@@ -90,13 +93,12 @@ public class ItemController {
         return ResponseEntity.noContent().build();
     }
 
-      // GET /items/{id} - détail article (public)
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponse> getItemById(@PathVariable Long id) {
         ItemResponse response = itemService.getItemById(id);
         return ResponseEntity.ok(response);
     }
-    // GET /items - recherche avec filtres + pagination (public)
+
     @GetMapping
     public ResponseEntity<List<ItemResponse>> searchItems(
             @RequestParam(required = false) Long categoryId,
@@ -121,5 +123,17 @@ public class ItemController {
                 sizePage
         );
         return ResponseEntity.ok(items);
+    }
+
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<Void> likeItem(@PathVariable("id") Long itemId) {
+        favoriteService.likeItem(itemId);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/favorite")
+    public ResponseEntity<Void> unlikeItem(@PathVariable("id") Long itemId) {
+        favoriteService.unlikeItem(itemId);
+        return ResponseEntity.noContent().build();
     }
 }
