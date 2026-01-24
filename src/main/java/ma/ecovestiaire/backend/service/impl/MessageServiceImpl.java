@@ -5,13 +5,16 @@ import ma.ecovestiaire.backend.dto.SendMessageRequest;
 import ma.ecovestiaire.backend.entity.Conversation;
 import ma.ecovestiaire.backend.entity.Message;
 import ma.ecovestiaire.backend.entity.User;
+import ma.ecovestiaire.backend.enums.NotificationType;
 import ma.ecovestiaire.backend.repository.ConversationRepository;
 import ma.ecovestiaire.backend.repository.MessageRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
 import ma.ecovestiaire.backend.service.MessageService;
+import ma.ecovestiaire.backend.service.NotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,13 +25,19 @@ public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
 
     public MessageServiceImpl(MessageRepository messageRepository,
                               ConversationRepository conversationRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              SimpMessagingTemplate messagingTemplate,
+                              NotificationService notificationService) {
         this.messageRepository = messageRepository;
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.notificationService = notificationService;
     }
 
     private User getCurrentUser() {
@@ -89,9 +98,33 @@ public class MessageServiceImpl implements MessageService {
 
         Message saved = messageRepository.save(message);
 
-        // Ici plus tard : push WebSocket / notification NEW_MESSAGE
+        MessageResponse payload = toResponse(saved);
 
-        return toResponse(saved);
+        // déterminer l'autre participant
+        User other = conversation.getUser1().getId().equals(current.getId())
+                ? conversation.getUser2()
+                : conversation.getUser1();
+
+        // 1) Envoi temps réel via WebSocket au destinataire
+        String userDest = other.getEmail(); // comme pour les notifications
+        messagingTemplate.convertAndSendToUser(
+                userDest,
+                "/queue/chat",
+                payload
+        );
+
+        // 2) Notification NEW_MESSAGE
+        String notifMessage = "Nouveau message de " + current.getFirstName();
+        String link = "/conversations/" + conversation.getId();
+
+        notificationService.createNotification(
+                other,
+                NotificationType.NEW_MESSAGE,
+                notifMessage,
+                link
+        );
+
+        return payload;
     }
 
     @Override
