@@ -4,5 +4,6 @@ public enum NotificationType {
     NEW_ORDER,
     ITEM_LIKED,
     NEW_COMMENT,
-    NEW_FOLLOW
+    NEW_FOLLOW,
+    NEW_MESSAGE
 }
