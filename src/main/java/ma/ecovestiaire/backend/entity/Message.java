@@ -36,6 +36,10 @@ public class Message {
     @Column(updatable = false)
     private Instant createdAt;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean read = false;
+
+    // date/heure à laquelle le message a été lu
+    private Instant readAt;
 }
