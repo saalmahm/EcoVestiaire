@@ -19,6 +19,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+
 @Service
 public class MessageServiceImpl implements MessageService {
 
@@ -130,7 +132,22 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public Page<MessageResponse> getMessages(Long conversationId, Pageable pageable) {
         Conversation conversation = getConversationForCurrentUserOrThrow(conversationId);
+        User current = getCurrentUser();
 
+        // Récupérer tous les messages non lus envoyés par l'autre user
+        var unreadMessages = messageRepository
+                .findByConversationAndSenderNotAndReadIsFalse(conversation, current);
+
+        if (!unreadMessages.isEmpty()) {
+            Instant now = Instant.now();
+            unreadMessages.forEach(m -> {
+                m.setRead(true);
+                m.setReadAt(now);
+            });
+            messageRepository.saveAll(unreadMessages);
+        }
+
+        // Retourner l'historique paginé
         return messageRepository
                 .findByConversationOrderByCreatedAtAsc(conversation, pageable)
                 .map(this::toResponse);

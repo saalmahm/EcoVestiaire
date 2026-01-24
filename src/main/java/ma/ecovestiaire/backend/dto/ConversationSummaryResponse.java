@@ -3,6 +3,8 @@ package ma.ecovestiaire.backend.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 public class ConversationSummaryResponse {
@@ -18,4 +20,12 @@ public class ConversationSummaryResponse {
     // informations sur l'article lié 
     private Long itemId;
     private String itemTitle;
+
+    // informations sur le dernier message
+    private String lastMessageContent;
+    private Instant lastMessageAt;
+    private boolean lastMessageFromMe;
+
+    // nombre de messages non lus pour l’utilisateur courant
+    private long unreadCount;
 }

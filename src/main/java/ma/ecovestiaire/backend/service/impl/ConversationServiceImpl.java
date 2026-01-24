@@ -5,9 +5,11 @@ import ma.ecovestiaire.backend.dto.ConversationSummaryResponse;
 import ma.ecovestiaire.backend.dto.CreateConversationRequest;
 import ma.ecovestiaire.backend.entity.Conversation;
 import ma.ecovestiaire.backend.entity.Item;
+import ma.ecovestiaire.backend.entity.Message;
 import ma.ecovestiaire.backend.entity.User;
 import ma.ecovestiaire.backend.repository.ConversationRepository;
 import ma.ecovestiaire.backend.repository.ItemRepository;
+import ma.ecovestiaire.backend.repository.MessageRepository;
 import ma.ecovestiaire.backend.repository.UserRepository;
 import ma.ecovestiaire.backend.service.ConversationService;
 import org.springframework.http.HttpStatus;
@@ -23,13 +25,16 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
+    private final MessageRepository messageRepository;
 
     public ConversationServiceImpl(ConversationRepository conversationRepository,
                                    UserRepository userRepository,
-                                   ItemRepository itemRepository) {
+                                   ItemRepository itemRepository,
+                                   MessageRepository messageRepository) {
         this.conversationRepository = conversationRepository;
         this.userRepository = userRepository;
         this.itemRepository = itemRepository;
+        this.messageRepository = messageRepository;
     }
 
     private User getCurrentUser() {
@@ -72,6 +77,18 @@ public class ConversationServiceImpl implements ConversationService {
             dto.setItemId(conversation.getItem().getId());
             dto.setItemTitle(conversation.getItem().getTitle());
         }
+
+        // Dernier message de la conversation
+        Message last = messageRepository.findTopByConversationOrderByCreatedAtDesc(conversation);
+        if (last != null) {
+            dto.setLastMessageContent(last.getContent());
+            dto.setLastMessageAt(last.getCreatedAt());
+            dto.setLastMessageFromMe(last.getSender().getId().equals(current.getId()));
+        }
+
+        // Nombre de messages non lus pour l'utilisateur courant
+        long unread = messageRepository.countByConversationAndSenderNotAndReadIsFalse(conversation, current);
+        dto.setUnreadCount(unread);
 
         return dto;
     }
