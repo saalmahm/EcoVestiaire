@@ -42,35 +42,36 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/auth/register", "/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/categories").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/payments/webhook").permitAll()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/categories").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/items", "/items/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/payments/webhook").permitAll()
 
-                    .requestMatchers("/admin/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/items/*/favorite").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/items/*/favorite").authenticated()
+                        .requestMatchers("/api/users/me/favorites").authenticated()
 
-                    .requestMatchers(HttpMethod.POST, "/items/*/favorite").authenticated()
-                    .requestMatchers(HttpMethod.DELETE, "/items/*/favorite").authenticated()
-                    .requestMatchers("/api/users/me/favorites").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/items/*/comments").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/comments/*").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/items/*/comments").permitAll()
 
-                    .requestMatchers(HttpMethod.POST, "/items/*/comments").authenticated()
-                    .requestMatchers(HttpMethod.DELETE, "/comments/*").authenticated()
-                    .requestMatchers(HttpMethod.GET, "/items/*/comments").permitAll()
+                        .requestMatchers("/items/**").authenticated()
+                        .requestMatchers("/orders/**").authenticated()
+                        .requestMatchers("/payments/**").authenticated()
 
-                    .requestMatchers("/items/**").authenticated()
-                    .requestMatchers("/orders/**").authenticated()
-                    .requestMatchers("/payments/**").authenticated()
+                        .requestMatchers("/notifications").authenticated()
 
-                    .requestMatchers("/notifications").authenticated()
+                        .requestMatchers("/api/conversations/**").authenticated()
 
-                     .requestMatchers("/admin/categories/**").hasRole("ADMIN")
-                    .requestMatchers("/admin/users/**").hasRole("ADMIN")
-                    .requestMatchers("/admin/items/**").hasRole("ADMIN")
-                    .requestMatchers("/admin/comments/**").hasRole("ADMIN")
-                    .requestMatchers("/admin/statistics/**").hasRole("ADMIN")
-                    .anyRequest().permitAll()
-            )
+                        .requestMatchers("/admin/categories/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/users/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/items/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/comments/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/statistics/**").hasRole("ADMIN")
+
+                        .anyRequest().permitAll()
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
