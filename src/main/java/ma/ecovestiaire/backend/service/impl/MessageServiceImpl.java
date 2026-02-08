@@ -21,6 +21,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 
+/**
+ * @author YouCode
+ * @since 2/25/2022
+ */
 @Service
 public class MessageServiceImpl implements MessageService {
 
