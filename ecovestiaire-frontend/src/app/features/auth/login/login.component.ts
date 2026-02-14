@@ -26,6 +26,20 @@ import { animate, style, transition, trigger, query, stagger } from '@angular/an
           ])
         ], { optional: true })
       ])
+    ]),
+    trigger('slideFromLeft', [
+      transition(':enter', [
+        style({ transform: 'translateX(-100%)', opacity: 0 }),
+        animate('600ms cubic-bezier(0.4, 0.0, 0.2, 1)', 
+          style({ transform: 'translateX(0)', opacity: 1 }))
+      ])
+    ]),
+    trigger('slideFromRight', [
+      transition(':enter', [
+        style({ transform: 'translateX(100%)', opacity: 0 }),
+        animate('600ms cubic-bezier(0.4, 0.0, 0.2, 1)', 
+          style({ transform: 'translateX(0)', opacity: 1 }))
+      ])
     ])
   ],
   styles: [`
@@ -78,8 +92,11 @@ export class LoginComponent {
       this.isLoading = true;
       this.errorMessage = '';
       
+      const rememberMe = this.loginForm.get('rememberMe')?.value;
+      
       this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
+        next: (response) => {
+          this.authService.handleAuthentication(response, rememberMe);
           this.router.navigate(['/']);
         },
         error: (err) => {

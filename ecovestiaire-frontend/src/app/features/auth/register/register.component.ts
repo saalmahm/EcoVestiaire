@@ -26,6 +26,20 @@ import { animate, style, transition, trigger, query, stagger } from '@angular/an
           ])
         ], { optional: true })
       ])
+    ]),
+    trigger('slideFromLeft', [
+      transition(':enter', [
+        style({ transform: 'translateX(-100%)', opacity: 0 }),
+        animate('600ms cubic-bezier(0.4, 0.0, 0.2, 1)', 
+          style({ transform: 'translateX(0)', opacity: 1 }))
+      ])
+    ]),
+    trigger('slideFromRight', [
+      transition(':enter', [
+        style({ transform: 'translateX(100%)', opacity: 0 }),
+        animate('600ms cubic-bezier(0.4, 0.0, 0.2, 1)', 
+          style({ transform: 'translateX(0)', opacity: 1 }))
+      ])
     ])
   ],
   styles: [`
@@ -68,18 +82,43 @@ export class RegisterComponent {
     firstName: ['', [Validators.required, Validators.maxLength(100)]],
     lastName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
-    password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]]
+    password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(100)]],
+    profilePicture: [null]
   });
 
   errorMessage: string = '';
   isLoading: boolean = false;
+  selectedFile: File | null = null;
+  imagePreview: string | null = null;
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 
   onSubmit() {
     if (this.registerForm.valid) {
       this.isLoading = true;
       this.errorMessage = '';
       
-      this.authService.register(this.registerForm.value).subscribe({
+      const formData = new FormData();
+      formData.append('firstName', this.registerForm.get('firstName')?.value);
+      formData.append('lastName', this.registerForm.get('lastName')?.value);
+      formData.append('email', this.registerForm.get('email')?.value);
+      formData.append('password', this.registerForm.get('password')?.value);
+      
+      if (this.selectedFile) {
+        formData.append('profilePicture', this.selectedFile);
+      }
+      
+      this.authService.register(formData).subscribe({
         next: () => {
           this.router.navigate(['/login']);
         },
