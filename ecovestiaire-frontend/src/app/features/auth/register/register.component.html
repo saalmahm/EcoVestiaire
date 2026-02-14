@@ -1,0 +1,92 @@
+<div class="flex h-screen w-full font-sans overflow-hidden">
+  <!-- Section Formulaire (Gauche) -->
+  <div class="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white" @pageAnimations>
+    <div class="w-full max-w-md space-y-6">
+      <div class="text-center animate-item">
+        <div class="flex justify-center mb-4">
+          <svg class="w-12 h-12 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 2L3 6m0 0l4 4M3 6h12a6 6 0 0 1 6 6v1m-4 9l4-4m0 0l-4-4m4 4H9a6 6 0 0 1-6-6v-1"></path>
+          </svg>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900">Create your account</h2>
+        <p class="text-sm text-gray-500">Start your sustainable fashion journey today</p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+        <div *ngIf="errorMessage" class="p-3 bg-red-100 text-red-700 rounded-lg text-xs animate-item">
+          {{ errorMessage }}
+        </div>
+
+        <div class="flex gap-4 animate-item">
+          <div class="flex-1 space-y-1">
+            <label class="text-sm font-medium text-gray-700">First Name</label>
+            <input type="text" formControlName="firstName" class="custom-input" placeholder="John">
+            <div class="error-msg">
+              <span *ngIf="registerForm.get('firstName')?.touched && registerForm.get('firstName')?.hasError('required')">Required</span>
+            </div>
+          </div>
+          <div class="flex-1 space-y-1">
+            <label class="text-sm font-medium text-gray-700">Last Name</label>
+            <input type="text" formControlName="lastName" class="custom-input" placeholder="Doe">
+            <div class="error-msg">
+              <span *ngIf="registerForm.get('lastName')?.touched && registerForm.get('lastName')?.hasError('required')">Required</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-1 animate-item">
+          <label class="text-sm font-medium text-gray-700">Email</label>
+          <input type="email" formControlName="email" class="custom-input" placeholder="you@example.com">
+          <div class="error-msg">
+            <span *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required')">Email required</span>
+            <span *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email')">Invalid email</span>
+          </div>
+        </div>
+
+        <div class="space-y-1 animate-item">
+          <label class="text-sm font-medium text-gray-700">Password</label>
+          <input type="password" formControlName="password" class="custom-input" placeholder="••••••••">
+          <div class="error-msg flex justify-between">
+            <span *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required')">Required</span>
+            <span *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength')">Min 6 chars</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 animate-item">
+          <label class="text-sm font-medium text-gray-700">Profile Picture</label>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 border border-gray-100 shadow-sm">
+              <mat-icon>person</mat-icon>
+            </div>
+            <button type="button" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+              Upload Image
+            </button>
+          </div>
+        </div>
+
+        <div class="animate-item pt-2">
+          <button type="submit" [disabled]="registerForm.invalid || isLoading"
+            class="w-full py-3.5 bg-[#059669] text-white rounded-lg font-semibold hover:bg-[#047857] transition-all shadow-sm">
+            {{ isLoading ? 'Creating...' : 'Create Account' }}
+          </button>
+        </div>
+
+        <p class="text-center text-sm text-gray-500 animate-item">
+          Already have an account? 
+          <a routerLink="/login" class="text-emerald-600 font-semibold hover:underline">Sign in</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Section Image (Droite) -->
+  <div class="hidden lg:flex lg:w-1/2 relative">
+    <img src="/images/auth-bg.jpg" alt="EcoVestiaire Background" class="absolute inset-0 w-full h-full object-cover">
+    <div class="absolute inset-0 bg-black/20 flex flex-col justify-end p-16 text-white">
+      <h1 class="text-5xl font-bold mb-4 leading-tight">Welcome to EcoVestiaire</h1>
+      <p class="text-xl opacity-90 max-w-lg leading-relaxed">
+        Donnez une seconde vie à vos vêtements et découvrez des trésors mode à prix abordables.
+      </p>
+    </div>
+  </div>
+</div>
