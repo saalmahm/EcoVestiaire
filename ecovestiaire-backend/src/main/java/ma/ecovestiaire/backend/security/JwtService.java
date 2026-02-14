@@ -1,6 +1,7 @@
 package ma.ecovestiaire.backend.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -39,8 +40,12 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, String userEmail) {
-        final String username = extractUsername(token);
-        return username.equals(userEmail) && !isTokenExpired(token);
+        try {
+            final String username = extractUsername(token);
+            return username.equals(userEmail) && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
