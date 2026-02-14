@@ -14,6 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -21,6 +28,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final String uploadDir = "uploads/profiles/";
 
     public AuthServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
@@ -28,6 +36,12 @@ public class AuthServiceImpl implements AuthService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        
+        try {
+            Files.createDirectories(Paths.get(uploadDir));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not initialize storage", e);
+        }
     }
 
     @Override
@@ -39,11 +53,17 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
+        String profilePhotoUrl = null;
+        if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
+            profilePhotoUrl = saveProfilePicture(request.getProfilePicture());
+        }
+
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .profilePhotoUrl(profilePhotoUrl)
                 .role(Role.USER)
                 .status(UserStatus.ACTIVE)
                 .build();
@@ -56,6 +76,17 @@ public class AuthServiceImpl implements AuthService {
                 saved.getLastName(),
                 saved.getEmail()
         );
+    }
+
+    private String saveProfilePicture(MultipartFile file) {
+        try {
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            Path path = Paths.get(uploadDir + fileName);
+            Files.copy(file.getInputStream(), path);
+            return "/api/uploads/profiles/" + fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Could not save profile picture", e);
+        }
     }
 
     @Override
