@@ -24,23 +24,23 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/login`, credentials).pipe(
-      tap(response => this.handleAuthentication(response))
-    );
+    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/login`, credentials);
   }
 
-  register(userData: RegisterRequest): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/register`, userData);
+  register(formData: FormData): Observable<any> {
+    return this.http.post(`${this.baseUrl}/auth/register`, formData);
   }
 
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
-  private handleAuthentication(response: AuthResponse): void {
+  public handleAuthentication(response: AuthResponse, rememberMe: boolean): void {
     const user: User = {
       id: response.userId,
       firstName: response.firstName,
@@ -49,16 +49,18 @@ export class AuthService {
       role: response.role
     };
     
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(user));
+    const storage = rememberMe ? localStorage : sessionStorage;
+    
+    storage.setItem('token', response.token);
+    storage.setItem('user', JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('token') || !!sessionStorage.getItem('token');
   }
 
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('token') || sessionStorage.getItem('token');
   }
 }
